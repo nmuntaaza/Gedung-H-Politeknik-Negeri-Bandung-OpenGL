@@ -11,6 +11,8 @@ float zpos = 0;
 float rot = 0.0f;
 float xx, yy;
 
+int direction = NONE;
+
 GLuint texture[35];
 
 struct Image 
@@ -105,7 +107,7 @@ int ImageLoad(char *filename, Image* image)
 	return 1;
 }
 
-Image* loadTexture(char* image_location)
+Image* LoadTexture(char* image_location)
 {
 	Image* image;
 	
@@ -125,8 +127,8 @@ Image* loadTexture(char* image_location)
 	return image;
 }
 
-//Membuat Method resize
-void resize(int width, int height)
+//Membuat Method Resize
+void Resize(int width, int height)
 {
 	glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
@@ -136,14 +138,10 @@ void resize(int width, int height)
     glLoadIdentity();
 }
 
-//Membuat Method timeout
-void myTimeOut(int id)
+void TimeOut(int id)
 {
-	// called if timer event
-	// ...advance the state of animation incrementally...
-	// rot+=10;
-    glutPostRedisplay(); // request redisplay
-    glutTimerFunc(100, myTimeOut, 0); // request next timer event
+    glutPostRedisplay();
+    glutTimerFunc(1000/60, TimeOut, 0);
 }
 
 void PressSpecialKeys(int key, int x, int y)
@@ -151,62 +149,90 @@ void PressSpecialKeys(int key, int x, int y)
 	switch (key)
 	{
 		case GLUT_KEY_LEFT:
-			xx += 0.1;
-			glutPostRedisplay();
+			direction = LEFT;
 			break;
 		case GLUT_KEY_RIGHT:
-			xx -= 0.1;
-			glutPostRedisplay();
+			direction = RIGHT;
 			break;
 		case GLUT_KEY_DOWN:
-			z_pos -= 0.1f;
-			glutPostRedisplay();
+			direction = BACK;
 			break;
 		case GLUT_KEY_UP:
-			z_pos += 0.1f;
-			glutPostRedisplay();
+			direction = FRONT;
 			break;
 	}
 }
 
-void myKeyboard(unsigned char key,int x, int y)
+void ReleaseSpecialKeys(int key, int x, int y)
 {
-	float fraction = 0.1f;
-    
-	switch (key) 
+	switch (key)
 	{
-		case 'h':
-			xpos = xpos + 5;
-			glutPostRedisplay();
-			break;
-		case 'j':
-			xpos = xpos - 5;
-			glutPostRedisplay();
-		case 's':
-			z_pos -= 0.1f;
-			glutPostRedisplay();
-			break;
-		case 'w':
-			z_pos += 0.1f;
-			glutPostRedisplay();
-			break;
-		case 'k' :
-			rot += 10;
-			glutPostRedisplay();
-			break;
-		case 'l' :
-			rot -= 10;
-			glutPostRedisplay();
-			break;
-		case 'd':
-			xx -= 0.1;
-			glutPostRedisplay();
-			break;
-		case 'a':
-			xx += 0.1;
-			glutPostRedisplay();
+		case GLUT_KEY_LEFT:
+		case GLUT_KEY_RIGHT:
+		case GLUT_KEY_DOWN:
+		case GLUT_KEY_UP:
+			direction = NONE;
 			break;
 	}
+}
+
+void PressNormalKey(unsigned char key, int x, int y)
+{   
+	switch (key) 
+	{
+		case 27:
+			exit(1);
+			break;
+		case 'w':
+			direction = ROT_UP;
+			break;
+		case 's':
+			direction = ROT_DOWN;
+			break;
+		case 'd':
+			direction = ROT_RIGHT;
+			break;
+		case 'a':
+			direction = ROT_LEFT;
+			break;
+	}
+}
+
+void ReleaseNormalKey(unsigned char key, int x, int y)
+{
+	switch(key) {
+		case 'w':
+		case 's':
+		case 'd':
+		case 'a':
+			direction = NONE;
+			break;	
+	}
+}
+
+void ComputePosition()
+{
+	glLoadIdentity();
+	
+	switch(direction) {
+		case FRONT:
+			z_pos += 0.1f;
+			break;
+		case BACK:
+			z_pos -= 0.1f;
+			break;
+		case LEFT:
+			xx += 0.1;
+			break;
+		case RIGHT:
+			xx -= 0.1;
+			break;
+	}
+	
+	glTranslatef(xx,yy,z_pos);
+	glRotatef(xpos, 1, 0, 0);
+	glRotatef(rot, 0, 1, 0);
+	glRotatef(zpos, 0, 0, 1);
 }
 
 void SkyBox()
@@ -214,115 +240,58 @@ void SkyBox()
 	// Langit Belakang & Kanan
 	glPushMatrix();
 		glColor3f(1.0f, 1.0f, 1.0f);
-		glBindTexture(GL_TEXTURE_2D, texture[6]);
+		glBindTexture(GL_TEXTURE_2D, texture[0]);
 		glBegin(GL_QUADS);
-			flatCube(-80, 80, -80, 80, -10, -80);
+			flatCube(-80, 80, -80, 80, -4, 80);
 		glEnd();
 	glPopMatrix();
 }
 
-// Membuat Method display
-void mydisplay()
+void Draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	glTranslatef(xx,yy,z_pos);
-	
-	glRotatef(xpos, 1, 0, 0);
-	glRotatef(rot, 0, 1, 0);
-	glRotatef(zpos, 0, 0, 1);
+	ComputePosition();
 
-	// Tanah Basement
+	// Ground
 	glPushMatrix();
-		glBindTexture(GL_TEXTURE_2D, texture[2]);
+		glBindTexture(GL_TEXTURE_2D, texture[1]);
 		glColor3f(1,1,1);
 		glTranslatef(-20.0f, 0.0f, -10.0f);
 		glBegin(GL_QUADS);
-			flatCube(15.0f, -3.0f, 3.0f, 20.0f, -3.0f, -15.0f);
+			flatCube(-79.0f, -3.0f, -79.0f, 79.0f, -3.0f, 79.0f);
 		glEnd();
 	glPopMatrix();
 	
 	SkyBox();
+//	printf("Dir: %i\n", direction);
 	
 	glutSwapBuffers();
 }
 
 // Membuat Method inisialisasi
-void init()
+void Init()
 {
 	glEnable(GL_TEXTURE_2D);
 	glShadeModel(GL_FLAT);
-	glClearColor(0.5, 0.5, 0.5, 0.0);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glGenTextures(35, texture);
 	
-	Image* skybox_back 	= loadTexture("Asset/Daylight_Box_Back.bmp");
-	Image* skybox_front 	= loadTexture("Asset/Daylight_Box_Front.bmp");
-	Image* skybox_top 	= loadTexture("Asset/Daylight_Box_Top.bmp");
-	Image* skybox_bottom 	= loadTexture("Asset/Daylight_Box_Bottom.bmp");
-	Image* skybox_left 	= loadTexture("Asset/Daylight_Box_Left.bmp");
-	Image* skybox_right 	= loadTexture("Asset/Daylight_Box_Right.bmp");
-   
-	if (skybox_back == NULL) 
-	{
-		printf("Image was not returned from loadTexture\n");
-		exit(0);
-	}
-
-	if (skybox_front == NULL) 
-	{
-		printf("Image was not returned from loadTexture\n");
-		exit(0);
-	}
-	
-	if (skybox_top == NULL) 
-	{
-		printf("Image was not returned from loadTexture\n");
-		exit(0);
-	}
-	
-	if (skybox_bottom == NULL) 
-	{
-		printf("Image was not returned from loadTexture\n");
-		exit(0);
-	}
+	Image* skybox_back 	= LoadTexture("Asset/Black.bmp");
+	Image* grass		= LoadTexture("Asset/Green_Grass.bmp");
 	
 	// ============================
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
-	// Menyesuaikan ukuran textur ketika image lebih besar dari texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	// Menyesuaikan ukuran textur ketika image lebih kecil dari texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	
 	glTexImage2D(GL_TEXTURE_2D, 0, 3, skybox_back->sizeX, skybox_back->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, skybox_back->data);
 	
 	// ============================
 	glBindTexture(GL_TEXTURE_2D, texture[1]);
-	// Menyesuaikan ukuran textur ketika image lebih besar dari texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	// Menyesuaikan ukuran textur ketika image lebih kecil dari texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, skybox_front->sizeX, skybox_front->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, skybox_front->data);
-	
-	// ============================
-	glBindTexture(GL_TEXTURE_2D, texture[2]);
-	// Menyesuaikan ukuran textur ketika image lebih besar dari texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	// Menyesuaikan ukuran textur ketika image lebih kecil dari texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, skybox_top->sizeX, skybox_top->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, skybox_top->data);
-	
-	// ============================
-	glBindTexture(GL_TEXTURE_2D, texture[3]);
-	// Menyesuaikan ukuran textur ketika image lebih besar dari texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	// Menyesuaikan ukuran textur ketika image lebih kecil dari texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, skybox_bottom->sizeX, skybox_bottom->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, skybox_bottom->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, grass->sizeX, grass->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, grass->data);
 }
 
 int main(int argc, char** argv)
@@ -332,14 +301,17 @@ int main(int argc, char** argv)
    glutInitWindowSize(1500,600);
    glutInitWindowPosition(0,0);
    glutCreateWindow("Gedung H");
+   Init();
    
-   glutDisplayFunc(mydisplay);
-   glutKeyboardFunc(myKeyboard);
+   glutDisplayFunc(Draw);
+   glutReshapeFunc(Resize);
+   glutKeyboardFunc(PressNormalKey);
+   glutKeyboardUpFunc(ReleaseNormalKey);
    glutSpecialFunc(PressSpecialKeys);
-   glutTimerFunc(100, myTimeOut, 0);
-   glutReshapeFunc(resize);
-   init();
+   glutSpecialUpFunc(ReleaseSpecialKeys);
+   glutTimerFunc(0, TimeOut, 0);
    
    glutMainLoop();
+   
    return 0;
 }
