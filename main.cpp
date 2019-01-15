@@ -255,37 +255,39 @@ void init()
 	glClearColor(0.5, 0.5, 0.5, 0.0);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	glGenTextures(35, texture);
 	
-	Image* kayu 	= loadTexture("Asset/kayu.bmp");
-	Image* tangga 	= loadTexture("Asset/tangga.bmp");
-	Image* lantai 	= loadTexture("Asset/lantai.bmp");
-	Image* pintu 	= loadTexture("Asset/pintu.bmp");
+	Image* skybox_back 	= loadTexture("Asset/Daylight_Box_Back.bmp");
+	Image* skybox_front 	= loadTexture("Asset/Daylight_Box_Front.bmp");
+	Image* skybox_top 	= loadTexture("Asset/Daylight_Box_Top.bmp");
+	Image* skybox_bottom 	= loadTexture("Asset/Daylight_Box_Bottom.bmp");
+	Image* skybox_left 	= loadTexture("Asset/Daylight_Box_Left.bmp");
+	Image* skybox_right 	= loadTexture("Asset/Daylight_Box_Right.bmp");
    
-	if (kayu == NULL) 
+	if (skybox_back == NULL) 
 	{
 		printf("Image was not returned from loadTexture\n");
 		exit(0);
 	}
 
-	if (tangga == NULL) 
+	if (skybox_front == NULL) 
 	{
 		printf("Image was not returned from loadTexture\n");
 		exit(0);
 	}
 	
-	if (lantai == NULL) 
+	if (skybox_top == NULL) 
 	{
 		printf("Image was not returned from loadTexture\n");
 		exit(0);
 	}
 	
-	if (pintu == NULL) 
+	if (skybox_bottom == NULL) 
 	{
 		printf("Image was not returned from loadTexture\n");
 		exit(0);
 	}
 	
-	glGenTextures(5, texture);
 	// ============================
 	glBindTexture(GL_TEXTURE_2D, texture[0]);
 	// Menyesuaikan ukuran textur ketika image lebih besar dari texture
@@ -293,8 +295,7 @@ void init()
 	// Menyesuaikan ukuran textur ketika image lebih kecil dari texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, kayu->sizeX, kayu->sizeY, 0, GL_RGB,
-	GL_UNSIGNED_BYTE, kayu->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, skybox_back->sizeX, skybox_back->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, skybox_back->data);
 	
 	// ============================
 	glBindTexture(GL_TEXTURE_2D, texture[1]);
@@ -303,8 +304,7 @@ void init()
 	// Menyesuaikan ukuran textur ketika image lebih kecil dari texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, tangga->sizeX, tangga->sizeY, 0, GL_RGB,
-	GL_UNSIGNED_BYTE, tangga->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, skybox_front->sizeX, skybox_front->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, skybox_front->data);
 	
 	// ============================
 	glBindTexture(GL_TEXTURE_2D, texture[2]);
@@ -313,8 +313,7 @@ void init()
 	// Menyesuaikan ukuran textur ketika image lebih kecil dari texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, lantai->sizeX, lantai->sizeY, 0, GL_RGB,
-	GL_UNSIGNED_BYTE, lantai->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, skybox_top->sizeX, skybox_top->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, skybox_top->data);
 	
 	// ============================
 	glBindTexture(GL_TEXTURE_2D, texture[3]);
@@ -323,8 +322,7 @@ void init()
 	// Menyesuaikan ukuran textur ketika image lebih kecil dari texture
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, pintu->sizeX, pintu->sizeY, 0, GL_RGB,
-	GL_UNSIGNED_BYTE, pintu->data);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, skybox_bottom->sizeX, skybox_bottom->sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE, skybox_bottom->data);
 }
 
 int main(int argc, char** argv)
